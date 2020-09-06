@@ -43,4 +43,34 @@ CHIP ALU {
 
     PARTS:
    // Put you code here:
+   // zx の実装、zx == true なら x を 0 にする
+   Mux16(a=x, b=false, sel=zx, out=x1);
+
+   // nx の実装、nx == true なら notx1 を 採用する
+   Not16(in=x1, out=notx1);
+   Mux16(a=x1, b=notx1, sel=nx, out=x2);
+
+   // zy の実装、zy == true なら x を 0 にする
+   Mux16(a=y, b=false, sel=zy, out=y1);
+
+   // nx の実装、ny == true なら notw3 を 採用する
+   Not16(in=y1, out=noty1);
+   Mux16(a=y1, b=noty1, sel=ny, out=y2);
+
+   // f == true なら Add16 それ意外は And16
+   And16(a=x2, b=y2, out=f1);
+   Add16(a=x2, b=y2, out=f2);
+   Mux16(a=f1, b=f2, sel=f, out=o1);
+
+   // no
+   Not16(in=o1, out=noto1);
+   // 2の補数により out が 0 より小さいなら 最上位ビット out[15] が true になる
+   // 上記の性質を利用して ng に結果を代入している 
+   Mux16(a=o1, b=noto1, sel=no, out=out, out[15]=ng, out[0..7]=o2, out[8..15]=o3);
+
+   // zr
+   Or8Way(in=o2, out=o4);
+   Or8Way(in=o3, out=o5);
+   Or(a=o4, b=o5, out=o6);
+   Not(in=o6, out=zr);
 }

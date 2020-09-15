@@ -17,4 +17,9 @@ CHIP PC {
 
     PARTS:
     // Put your code here:
+    Inc16(in=r1, out=o1);
+    Mux16(a=in, b=o1, sel=inc, out=o2);  // inc
+    Mux16(a=o2, b=in, sel=load, out=o3); // in
+    Mux16(a=o3, b[0..15]=false, sel=reset, out=o4); // reset
+    Register(in=o4, load=true, out=out, out=r1); // inc は out(t) = out(t) + 1 なので、out の結果を r1 に持たせる
 }

@@ -39,9 +39,12 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
+    // 最大ビットが0であるか判定して、A命令か判断
     Not(in = instruction[15], out = isA);
+    // 最大ビットが1であるか判定して、C命令か判断
     Not(in = isA, out = isC);
 
+    // C命令で且つ、dビットが立っている場合はALUの読み込みを実施
     And(a = isC, b = instruction[5], out = isLoadAluOut);
     Mux16(a = instruction, b = outALU, sel = isLoadAluOut, out = inAR);
 
@@ -50,12 +53,13 @@ CHIP CPU {
 
     Mux16(a = outAR, b = inM, sel = instruction[12], out = outAM);
 
+    // C命令で且つwriteMが立っている場合
     And(a = isC, b = instruction[3], out = writeM);
 
     And(a = instruction[4], b = isC, out = isLoadDR); 
     DRegister(in = outALU, load = isLoadDR, out = outDR);
 
-
+    // ALUの命令セット
     And(a = isC, b = instruction[6], out = no);
     And(a = isC, b = instruction[7], out = f);
     And(a = isC, b = instruction[8], out = ny);
@@ -69,13 +73,16 @@ CHIP CPU {
     And(a = isC, b = instruction[1], out = isEQ);
     And(a = isC, b = instruction[2], out = isLT);
 
+    // ALUのoutが負の場合、PCのload
     And(a = ng, b = isLT, out = isLtJump);
+    // ALUのoutが0の場合、PCのload
     And(a = zr, b = isEQ, out = isEqJump);
 
     Not(in = ng, out = notNg);
     Not(in = zr, out = notZr);
     And(a = notNg, b = notZr, out = isOutGt);
     
+    // ALUのoutが正の場合(負でも0でもない)、PCのload
     And(a = isOutGt, b = isGT, out = isGtJump);
 
     Or(a = isLtJump, b = isEqJump, out = isJump);

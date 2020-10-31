@@ -39,6 +39,30 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
+    /*
+    A命令の場合
+    0vvvvvvvvvvvvvvv
+
+    C命令の場合
+    i xx a cccccc ddd jjj
+
+    a: ALUのy(0: A, 1:M)
+
+    c1: ALUのzx
+    c2: ALUのnx
+    c3: ALUのzy
+    c4: ALUのny
+    c5: ALUのf
+    c6: ALUのno
+
+    d1: ARegisterのload
+    d2: DRegisterのload
+    d3: writeM
+
+    j1: PCのload(ng == 1)
+    j2: PCのload(zr == 1)
+    j3: PCのload(ng == 0 && zr == 0)
+    */
     // 最大ビットが0であるか判定して、A命令か判断
     Not(in = instruction[15], out = isA);
     // 最大ビットが1であるか判定して、C命令か判断
@@ -53,9 +77,10 @@ CHIP CPU {
 
     Mux16(a = outAR, b = inM, sel = instruction[12], out = outAM);
 
-    // C命令で且つwriteMが立っている場合
+    // C命令で且つwriteMが立っているか
     And(a = isC, b = instruction[3], out = writeM);
 
+    // DRegisterのloadフラグが立っているか
     And(a = instruction[4], b = isC, out = isLoadDR); 
     DRegister(in = outALU, load = isLoadDR, out = outDR);
 

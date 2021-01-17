@@ -2,10 +2,12 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
 
-mod parser;
 mod code_writer;
+mod command;
+mod parser;
+mod segment;
 
-fn main() -> Result<(), io::Error>{
+fn main() -> Result<(), io::Error> {
     let args: Vec<String> = env::args().collect();
     println!("args: {:?}", args);
 
@@ -32,7 +34,7 @@ fn read_lines(file_name: &str) -> Result<io::Lines<io::BufReader<File>>, io::Err
 }
 
 fn is_valid_command(line: &str) -> bool {
-    if line.trim().is_empty() ||  line.trim().starts_with("//"){
+    if line.trim().is_empty() || line.trim().starts_with("//") {
         return false;
     }
     true

@@ -63,10 +63,78 @@ M=M+1"#,
                     index
                 )
             }
-            Segment::This => "".to_string(),
-            Segment::That => "".to_string(),
-            Segment::Pointer => "".to_string(),
-            Segment::Temp => "".to_string(),
+            Segment::This => {
+                format!(
+                    r#"@{}
+D=A
+@THIS
+A=D+M
+D=M
+
+// push to stack
+@SP
+A=M
+M=D
+@SP
+M=M+1"#,
+                    index
+                )
+            },
+            Segment::That => {
+                format!(
+                    r#"@{}
+D=A
+@THAT
+A=D+M
+D=M
+
+// push to stack
+@SP
+A=M
+M=D
+@SP
+M=M+1"#,
+                    index
+                )
+            },
+            Segment::Pointer => {
+                format!(
+                    r#"@{}
+D=A
+
+@{}
+A=D+A
+D=M
+
+// push to stack
+@SP
+A=M
+M=D
+@SP
+M=M+1"#,
+                    index,
+                    3
+                )
+            },
+            Segment::Temp => {
+                format!(
+                    r#"@{}
+D=A
+
+@{}
+A=D+A
+D=M
+
+// push to stack
+@SP
+A=M
+M=D
+@SP
+M=M+1"#,
+                    index,
+                    5
+                )
+            },
         },
     }
 }

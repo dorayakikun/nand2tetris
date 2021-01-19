@@ -5,19 +5,10 @@ pub fn write_code(file_name: &str, command: &Command) -> String {
         Command::Push(segment, index) => match segment {
             Segment::Argument => {
                 format!(
-                    r#"@{}
-D=A
-@ARG
-A=D+M
-D=M
-
-// push to stack
-@SP
-A=M
-M=D
-@SP
-M=M+1"#,
-                    index
+                    "{}\n{}\n\n// push to stack\n{}",
+                    write_load_value_into_dregister(index),
+                    write_load_value_offset_into_dregister("ARG"),
+                    write_push_dregister_onto_stack()
                 )
             }
             Segment::Local => {
@@ -79,7 +70,7 @@ M=D
 M=M+1"#,
                     index
                 )
-            },
+            }
             Segment::That => {
                 format!(
                     r#"@{}
@@ -96,7 +87,7 @@ M=D
 M=M+1"#,
                     index
                 )
-            },
+            }
             Segment::Pointer => {
                 format!(
                     r#"@{}
@@ -112,10 +103,9 @@ A=M
 M=D
 @SP
 M=M+1"#,
-                    index,
-                    3
+                    index, 3
                 )
-            },
+            }
             Segment::Temp => {
                 format!(
                     r#"@{}
@@ -131,12 +121,28 @@ A=M
 M=D
 @SP
 M=M+1"#,
-                    index,
-                    5
+                    index, 5
                 )
-            },
+            }
         },
     }
+}
+
+fn write_load_value_into_dregister(value: &i32) -> String {
+    format!("@{}\nD=A", value)
+}
+
+fn write_load_value_offset_into_dregister(segment: &str) -> String {
+    format!("@{}\nA=D+M\nD=M", segment)
+}
+
+fn write_push_dregister_onto_stack() -> String {
+    r#"@SP
+A=M
+M=D
+@SP
+M=M+1"#
+        .to_string()
 }
 
 mod tests {

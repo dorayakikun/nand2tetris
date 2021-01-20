@@ -1,31 +1,30 @@
 use crate::{command::Command, segment::Segment};
 
+const PUSH_ONTO_STACK: &str = r#"// push onto stack
+@SP
+A=M
+M=D
+@SP
+M=M+1
+"#;
+
 pub fn write_code(file_name: &str, command: &Command) -> String {
     match command {
         Command::Push(segment, index) => match segment {
             Segment::Argument => {
                 format!(
-                    "{}\n{}\n\n// push to stack\n{}",
-                    write_load_value_into_dregister(index),
-                    write_load_value_offset_into_dregister("ARG"),
-                    write_push_dregister_onto_stack()
+                    "{}\n{}\n{}",
+                    write_load_value_into_d(index),
+                    write_load_value_offset_into_d("ARG"),
+                    PUSH_ONTO_STACK
                 )
             }
             Segment::Local => {
                 format!(
-                    r#"@{}
-D=A
-@LCL
-A=D+M
-D=M
-
-// push to stack
-@SP
-A=M
-M=D
-@SP
-M=M+1"#,
-                    index
+                    "{}\n{}\n{}",
+                    write_load_value_into_d(index),
+                    write_load_value_offset_into_d("LCL"),
+                    PUSH_ONTO_STACK
                 )
             }
             Segment::Static => {
@@ -128,21 +127,12 @@ M=M+1"#,
     }
 }
 
-fn write_load_value_into_dregister(value: &i32) -> String {
+fn write_load_value_into_d(value: &i32) -> String {
     format!("@{}\nD=A", value)
 }
 
-fn write_load_value_offset_into_dregister(segment: &str) -> String {
+fn write_load_value_offset_into_d(segment: &str) -> String {
     format!("@{}\nA=D+M\nD=M", segment)
-}
-
-fn write_push_dregister_onto_stack() -> String {
-    r#"@SP
-A=M
-M=D
-@SP
-M=M+1"#
-        .to_string()
 }
 
 mod tests {

@@ -2,6 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
 
+mod arithmetic_command;
 mod code_writer;
 mod command;
 mod parser;

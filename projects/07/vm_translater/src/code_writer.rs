@@ -1,4 +1,4 @@
-use crate::{command::Command, segment::Segment};
+use crate::{arithmetic_command::{self, ArithmeticCommand}, command::Command, segment::Segment};
 
 const PUSH_ONTO_STACK: &str = r#"// Push value onto stack
 @SP
@@ -6,6 +6,11 @@ A=M
 M=D
 @SP
 M=M+1"#;
+
+const POP_STACK_INTO_D: &str = r#"// Pop stack into d
+@SP
+AM=M-1
+D=M"#;
 
 const POP_STACK_INTO_D_AS_ADDR: &str = r#"// Write d in a general register
 @R13
@@ -26,6 +31,35 @@ pub fn write_code(file_name: &str, command: &Command) -> String {
         Command::Arithmetic(arithmetic_command) => { unimplemented!() },
         Command::Push(segment, index) => write_code_push(file_name, segment, index),
         Command::Pop(segment, index) => write_code_pop(file_name, segment, index),
+    }
+}
+
+fn write_code_arithmetic(file_name: &str, arithmetic_command: &ArithmeticCommand, index: &i32) -> String {
+    match arithmetic_command {
+        Add => {
+            format!(r#"{}
+@SP
+A=M-1
+
+M=M+D"#, POP_STACK_INTO_D)
+        },
+        Sub => {
+            format!(r#"{}
+@SP
+A=M-1
+
+M=M-D"#, POP_STACK_INTO_D)
+        },
+        Neg => {
+            format!(r#"{}
+M=-M"#, POP_STACK_INTO_D)
+        },
+        Eq=> { unimplemented!() },
+        Gt=> { unimplemented!() },
+        Lt=> { unimplemented!() },
+        And=> { unimplemented!() },
+        Or=> { unimplemented!() },
+        Not=> { unimplemented!() },
     }
 }
 

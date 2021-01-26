@@ -54,7 +54,33 @@ M=M-D"#, POP_STACK_INTO_D)
             format!(r#"{}
 M=-M"#, POP_STACK_INTO_D)
         },
-        Eq=> { unimplemented!() },
+        Eq=> { 
+            format!(r#"{}
+
+@SP
+A=M-1
+
+D=M-D
+
+@{}_{}
+D;{}
+
+@SP
+A=M
+M=0
+
+@{}_END_{}
+0;JMP
+
+({}_{})
+@SP
+A=M
+M=-1
+
+({}_END_{})
+@SP
+M=M+1"#, POP_STACK_INTO_D)
+         },
         Gt=> { unimplemented!() },
         Lt=> { unimplemented!() },
         And=> { unimplemented!() },

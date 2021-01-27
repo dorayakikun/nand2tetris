@@ -59,27 +59,26 @@ M=-M"#, POP_STACK_INTO_D)
 
 @SP
 A=M-1
-
 D=M-D
 
-@{}_{}
-D;{}
+@EQ_{}
+D;JEQ
 
 @SP
 A=M
 M=0
 
-@{}_END_{}
+@EQ_END_{}
 0;JMP
 
-({}_{})
+(EQ_{})
 @SP
 A=M
 M=-1
 
-({}_END_{})
+(EQ_END_{})
 @SP
-M=M+1"#, POP_STACK_INTO_D)
+M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
          },
         Gt=> { unimplemented!() },
         Lt=> { unimplemented!() },

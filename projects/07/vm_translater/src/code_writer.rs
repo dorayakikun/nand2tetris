@@ -80,7 +80,35 @@ M=-1
 @SP
 M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
          },
-        Gt=> { unimplemented!() },
+        Gt=> {
+            format!(r#"{}
+// M - D
+@SP
+A=M-1
+D=M-D
+
+// if D > 0 then goto GT_[[index]]
+@GT_{}
+D;JGT
+
+// else set M to false(=0)
+@SP
+A=M
+M=0
+
+// goto GT_END_[[index]]
+@GT_END_{}
+0;JMP
+
+(GT_{})
+@SP
+A=M
+M=-1
+
+(GT_END_{})
+@SP
+M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
+        },
         Lt=> { unimplemented!() },
         And=> { unimplemented!() },
         Or=> { unimplemented!() },

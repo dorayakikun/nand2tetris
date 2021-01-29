@@ -109,7 +109,35 @@ M=-1
 @SP
 M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
         },
-        Lt=> { unimplemented!() },
+        Lt=> {
+            format!(r#"{}
+// M - D
+@SP
+A=M-1
+D=M-D
+
+// if D > 0 then goto LT_[[index]]
+@LT_{}
+D;JGT
+
+// else set M to false(=0)
+@SP
+A=M
+M=0
+
+// goto LT_END_[[index]]
+@LT_END_{}
+0;JMP
+
+(LT_{})
+@SP
+A=M
+M=-1
+
+(LT_END_{})
+@SP
+M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
+        },
         And=> { unimplemented!() },
         Or=> { unimplemented!() },
         Not=> { unimplemented!() },

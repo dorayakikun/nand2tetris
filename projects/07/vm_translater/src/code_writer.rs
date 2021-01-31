@@ -1,408 +1,317 @@
-use crate::{arithmetic_command::{self, ArithmeticCommand}, command::Command, segment::Segment};
-
-const PUSH_ONTO_STACK: &str = r#"// Push value onto stack
-@SP
-A=M
-M=D
-@SP
-M=M+1"#;
-
-const POP_STACK_INTO_D: &str = r#"// Pop stack into d
-@SP
-AM=M-1
-D=M"#;
-
-const POP_STACK_INTO_D_AS_ADDR: &str = r#"// Write d in a general register
-@R13
-M=D
-
-// Decrese stack pointer and load value into d
-@SP
-AM=M-1
-D=M
-
-// Jump to general register and write d in it
-@R13
-A=M
-M=D"#;
+use crate::{
+    arithmetic_command::{self, ArithmeticCommand},
+    command::Command,
+    segment::{self, Segment},
+};
 
 pub fn write_code(file_name: &str, command: &Command) -> String {
     match command {
-        Command::Arithmetic(arithmetic_command) => { unimplemented!() },
+        Command::Arithmetic(arithmetic_command) => {
+            unimplemented!()
+        }
         Command::Push(segment, index) => write_code_push(file_name, segment, index),
         Command::Pop(segment, index) => write_code_pop(file_name, segment, index),
     }
 }
 
-fn write_code_arithmetic(file_name: &str, arithmetic_command: &ArithmeticCommand, index: &i32) -> String {
+fn write_code_arithmetic(
+    file_name: &str,
+    arithmetic_command: &ArithmeticCommand,
+    index: &i32,
+) -> String {
     match arithmetic_command {
-        Add => {
-            format!(r#"{}
-@SP
-A=M-1
-
-M=M+D"#, POP_STACK_INTO_D)
-        },
-        Sub => {
-            format!(r#"{}
-@SP
-A=M-1
-
-M=M-D"#, POP_STACK_INTO_D)
-        },
-        Neg => {
-            format!(r#"{}
-M=-M"#, POP_STACK_INTO_D)
-        },
-        Eq=> { 
-            format!(r#"{}
-
-@SP
-A=M-1
-D=M-D
-
-@EQ_{}
-D;JEQ
-
-@SP
-A=M
-M=0
-
-@EQ_END_{}
-0;JMP
-
-(EQ_{})
-@SP
-A=M
-M=-1
-
-(EQ_END_{})
-@SP
-M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
-         },
-        Gt=> {
-            format!(r#"{}
-// M - D
-@SP
-A=M-1
-D=M-D
-
-// if D > 0 then goto GT_[[index]]
-@GT_{}
-D;JGT
-
-// else set M to false(=0)
-@SP
-A=M
-M=0
-
-// goto GT_END_[[index]]
-@GT_END_{}
-0;JMP
-
-(GT_{})
-@SP
-A=M
-M=-1
-
-(GT_END_{})
-@SP
-M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
-        },
-        Lt=> {
-            format!(r#"{}
-// M - D
-@SP
-A=M-1
-D=M-D
-
-// if D > 0 then goto LT_[[index]]
-@LT_{}
-D;JGT
-
-// else set M to false(=0)
-@SP
-A=M
-M=0
-
-// goto LT_END_[[index]]
-@LT_END_{}
-0;JMP
-
-(LT_{})
-@SP
-A=M
-M=-1
-
-(LT_END_{})
-@SP
-M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
-        },
-        And=> {
-            format!(r#"{}
-// M - D
-@SP
-A=M-1
-
-M=D&M
-"#, POP_STACK_INTO_D)
-        },
-        Or=> {
-            format!(r#"{}
-// M - D
-@SP
-A=M-1
-D=M-D
-
-// if D > 0 then goto LT_[[index]]
-@LT_{}
-D;JGT
-
-// else set M to false(=0)
-@SP
-A=M
-M=0
-
-// goto LT_END_[[index]]
-@LT_END_{}
-0;JMP
-
-(LT_{})
-@SP
-A=M
-M=-1
-
-(LT_END_{})
-@SP
-M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
-        },
-        And=> {
-            format!(r#"{}
-// M - D
-@SP
-A=M-1
-
-M=D|M
-"#, POP_STACK_INTO_D)
-         },
-        Not=> {
-            format!(r#"{}
-// M - D
-@SP
-A=M-1
-D=M-D
-
-// if D > 0 then goto LT_[[index]]
-@LT_{}
-D;JGT
-
-// else set M to false(=0)
-@SP
-A=M
-M=0
-
-// goto LT_END_[[index]]
-@LT_END_{}
-0;JMP
-
-(LT_{})
-@SP
-A=M
-M=-1
-
-(LT_END_{})
-@SP
-M=M+1"#, POP_STACK_INTO_D, index, index, index, index)
-        },
-        And=> {
-            format!(r#"{}
-// M - D
-@SP
-A=M-1
-
-M=!M
-"#, POP_STACK_INTO_D)
-        },
+        Add => vec![
+            String::from("// Add"),
+            String::from("// Pop stack into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("@SP"),
+            String::from("A=M-1"),
+            String::from("@SP"),
+            String::from("M=M+D"),
+        ]
+        .join("\n"),
+        Sub => vec![
+            String::from("// Sub"),
+            String::from("// Pop stack into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("@SP"),
+            String::from("A=M-1"),
+            String::from("@SP"),
+            String::from("M=M-D"),
+        ]
+        .join("\n"),
+        Neg => vec![
+            String::from("// Neg"),
+            String::from("// Pop stack into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("@SP"),
+            String::from("A=M-1"),
+            String::from("@SP"),
+            String::from("M=-M"),
+        ]
+        .join("\n"),
+        Eq => write_code_comparation("EQ", index),
+        Gt => write_code_comparation("GT", index),
+        Lt => write_code_comparation("LT", index),
+        And => vec![
+            String::from("// And"),
+            String::from("// Pop stack into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("// M - D"),
+            String::from("@SP"),
+            String::from("A=M-1"),
+            String::from("M=D&M"),
+        ]
+        .join("\n"),
+        Or => vec![
+            String::from("// Or"),
+            String::from("// Pop stack into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("// M - D"),
+            String::from("@SP"),
+            String::from("A=M-1"),
+            String::from("M=D|M"),
+        ]
+        .join("\n"),
+        Not => vec![
+            String::from("// Not"),
+            String::from("// Pop stack into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("// M - D"),
+            String::from("@SP"),
+            String::from("A=M-1"),
+            String::from("M=!M"),
+        ]
+        .join("\n"),
     }
+}
+
+fn write_code_comparation(operator: &str, index: &i32) -> String {
+    vec![
+        format!("// {}", operator),
+        String::from("// Pop stack into d"),
+        String::from("@SP"),
+        String::from("AM=M-1"),
+        String::from("D=M"),
+        String::from("// M - D"),
+        String::from("@SP"),
+        String::from("A=M-1"),
+        String::from("D=M-D"),
+        format!("// if D > 0 then goto {}_{}", operator, index),
+        format!("@{}_{}", operator, index),
+        format!("D;J{}", operator),
+        String::from("// else set M to false(=0)"),
+        String::from("@SP"),
+        String::from("A=M"),
+        String::from("M=0"),
+        format!("// goto {}_END_{}", operator, index),
+        format!("@{}_END_{}", operator, index),
+        String::from("0;JMP"),
+        format!("({}_{})", operator, index),
+        String::from("@SP"),
+        String::from("A=M"),
+        String::from("M=-1"),
+        format!("({}_END_{})", operator, index),
+        String::from("@SP"),
+        String::from("M=M+1"),
+    ]
+    .join("\n")
 }
 
 fn write_code_push(file_name: &str, segment: &Segment, index: &i32) -> String {
     match segment {
-        Segment::Argument => {
-            format!(
-                "{}\n{}\n{}",
-                write_load_value_into_d(index),
-                write_load_value_offset_into_d("ARG"),
-                PUSH_ONTO_STACK
-            )
-        }
-        Segment::Local => {
-            format!(
-                "{}\n{}\n{}",
-                write_load_value_into_d(index),
-                write_load_value_offset_into_d("LCL"),
-                PUSH_ONTO_STACK
-            )
-        }
-        Segment::Static => {
-            format!("@{}.{}\nD=M\n{}", file_name, index, PUSH_ONTO_STACK)
-        }
-        Segment::Constant => {
-            format!("{}\n{}", write_load_value_into_d(index), PUSH_ONTO_STACK)
-        }
-        Segment::This => {
-            format!(
-                "{}\n{}\n{}",
-                write_load_value_into_d(index),
-                write_load_value_offset_into_d("THIS"),
-                PUSH_ONTO_STACK
-            )
-        }
-        Segment::That => {
-            format!(
-                "{}\n{}\n{}",
-                write_load_value_into_d(index),
-                write_load_value_offset_into_d("THAT"),
-                PUSH_ONTO_STACK
-            )
-        }
-        Segment::Pointer => {
-            format!(
-                r#"{}
-
-// offset by 3
-// pointer i は 3 + i 番目のアドレスへ 変換されるべき
-@3
-A=D+A
-D=M
-
-{}"#,
-                write_load_value_into_d(index),
-                PUSH_ONTO_STACK
-            )
-        }
-        Segment::Temp => {
-            format!(
-                r#"{}
-
-// offset by 5
-// temp i は 5 + i 番目のアドレスへ 変換されるべき
-@5
-A=D+A
-D=M
-
-{}"#,
-                write_load_value_into_d(index),
-                PUSH_ONTO_STACK
-            )
-        }
+        Segment::Argument => write_push_value_into_stack("ARG", index),
+        Segment::Local => write_push_value_into_stack("LCL", index),
+        Segment::Static => vec![
+            String::from("// Static"),
+            format!("@{}.{}", file_name, index),
+            String::from("D=M"),
+            String::from("// Push value onto stack"),
+            String::from("@SP"),
+            String::from("A=M"),
+            String::from("M=D"),
+            String::from("@SP"),
+            String::from("M=M+1"),
+        ]
+        .join("\n"),
+        Segment::Constant => vec![
+            String::from("// Constant"),
+            String::from("// Load constant or offset into d"),
+            format!("{}", index),
+            String::from("D=A"),
+            String::from("// Push value onto stack"),
+            String::from("@SP"),
+            String::from("A=M"),
+            String::from("M=D"),
+            String::from("@SP"),
+            String::from("M=M+1"),
+        ]
+        .join("\n"),
+        Segment::This => write_push_value_into_stack("THIS", index),
+        Segment::That => write_push_value_into_stack("THAT", index),
+        Segment::Pointer => vec![
+            String::from("// Pointer"),
+            String::from("// Load constant or offset into d"),
+            format!("{}", index),
+            String::from("D=A"),
+            String::from("// offset by 3"),
+            String::from("// pointer i は 3 + i 番目のアドレスへ 変換されるべき"),
+            String::from("@3"),
+            String::from("A=D+A"),
+            String::from("D=M"),
+            String::from("// Push value onto stack"),
+            String::from("@SP"),
+            String::from("A=M"),
+            String::from("M=D"),
+            String::from("@SP"),
+            String::from("M=M+1"),
+        ]
+        .join("\n"),
+        Segment::Temp => vec![
+            String::from("// Temp"),
+            String::from("// Load constant or offset into d"),
+            format!("{}", index),
+            String::from("D=A"),
+            String::from("// offset by 5"),
+            String::from("// temp i は 5 + i 番目のアドレスへ 変換されるべき"),
+            String::from("@5"),
+            String::from("A=D+A"),
+            String::from("D=M"),
+            String::from("// Push value onto stack"),
+            String::from("@SP"),
+            String::from("A=M"),
+            String::from("M=D"),
+            String::from("@SP"),
+            String::from("M=M+1"),
+        ]
+        .join("\n"),
     }
 }
 
-fn write_load_value_into_d(value: &i32) -> String {
-    format!(r#"// Load constant or offset into d
-@{}
-D=A"#, value)
-}
-
-fn write_load_value_offset_into_d(segment: &str) -> String {
-    format!(r#"// Load value offset and Load offset + address into d
-@{}
-A=D+M
-D=M"#, segment)
+fn write_push_value_into_stack(segment: &str, value: &i32) -> String {
+    vec![
+        format!("// {}", segment),
+        String::from("// Load constant or offset into d"),
+        format!("@{}", value),
+        String::from("D=A"),
+        String::from("// Load value offset and Load offset + address into d"),
+        format!("@{}", segment),
+        String::from("A=D+M"),
+        String::from("D=M"),
+        String::from("// Push value onto stack"),
+        String::from("@SP"),
+        String::from("A=M"),
+        String::from("M=D"),
+        String::from("@SP"),
+        String::from("M=M+1"),
+    ]
+    .join("\n")
 }
 
 fn write_code_pop(file_name: &str, segment: &Segment, index: &i32) -> String {
     match segment {
-        Segment::Argument => {
-            write_pop_stack_into_segment("ARG", index)
-        }
-        Segment::Local => {
-            write_pop_stack_into_segment("LCL", index)
-        }
-        Segment::Static => {
-            format!(r#"{}.{}
-D=A
-
-{}"#, file_name, index, POP_STACK_INTO_D_AS_ADDR)
-        }
+        Segment::Argument => write_pop_stack_into_segment("ARG", index),
+        Segment::Local => write_pop_stack_into_segment("LCL", index),
+        Segment::Static => vec![
+            String::from("// Static"),
+            format!("{}.{}", file_name, index),
+            String::from("D=A"),
+            String::from("// Write d in a general register"),
+            String::from("@R13"),
+            String::from("M=D"),
+            String::from("// Decrese stack pointer and load value into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("// Jump to general register and write d in it"),
+            String::from("@R13"),
+            String::from("A=M"),
+            String::from("M=D"),
+        ]
+        .join("\n"),
         Segment::Constant => {
             unimplemented!()
         }
-        Segment::This => {
-            write_pop_stack_into_segment("THIS", index)
-        }
-        Segment::That => {
-            write_pop_stack_into_segment("THAT", index)
-        }
-        Segment::Pointer => {
-            format!(r#"// Load a base address into d
-{}
-D=A
-
-// base + 3
-@3
-D=D+A
-
-{}"#, index, POP_STACK_INTO_D_AS_ADDR)
-        }
-        Segment::Temp => {
-            format!(r#"// Load a base address into d
-{}
-D=A
-
-// base + 5
-@5
-D=D+A
-
-{}"#, index, POP_STACK_INTO_D_AS_ADDR)
-        }
+        Segment::This => write_pop_stack_into_segment("THIS", index),
+        Segment::That => write_pop_stack_into_segment("THAT", index),
+        Segment::Pointer => vec![
+            String::from("// Pointer"),
+            String::from("// Load a base address into d"),
+            format!("{}", index),
+            String::from("D=A"),
+            String::from("// base + 3"),
+            String::from("@3"),
+            String::from("D=D+A"),
+            String::from("// Write d in a general register"),
+            String::from("@R13"),
+            String::from("M=D"),
+            String::from("// Decrese stack pointer and load value into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("// Jump to general register and write d in it"),
+            String::from("@R13"),
+            String::from("A=M"),
+            String::from("M=D"),
+        ]
+        .join("\n"),
+        Segment::Temp => vec![
+            String::from("// Temp"),
+            String::from("// Load a base address into d"),
+            format!("{}", index),
+            String::from("D=A"),
+            String::from("// base + 5"),
+            String::from("@5"),
+            String::from("D=D+A"),
+            String::from("// Write d in a general register"),
+            String::from("@R13"),
+            String::from("M=D"),
+            String::from("// Decrese stack pointer and load value into d"),
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("D=M"),
+            String::from("// Jump to general register and write d in it"),
+            String::from("@R13"),
+            String::from("A=M"),
+            String::from("M=D"),
+        ]
+        .join("\n"),
     }
 }
 
 fn write_pop_stack_into_segment(segment: &str, index: &i32) -> String {
-    format!(r#"// Load offset value into d
-@{}
-D=A
-
-// Jump to segment + offset
-@{}
-D=M+D
-
-// Assign address to temp
-// R13 - 15 は汎用的なレジスタとしてVM実装で用いることができる
-@R13
-M=D
-
-// Decrese stack pointer and pop stack into d
-@SP
-AM=M-1
-D=M
-
-// Jump to temp and write d in it
-@R13
-A=M
-M=D"#, index, segment).to_string()
-}
-
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_push_arguments() {
-        assert_eq!(
-            write_code("test", &Command::Push(Segment::Argument, 10)),
-            r#"@10
-D=A
-@ARG
-A=D+M
-D=M
-// push onto stack
-@SP
-A=M
-M=D
-@SP
-M=M+1"#
-        );
-    }
+    vec![
+        format!("// {}", segment),
+        String::from("// Load offset value into d"),
+        format!("@{}", index),
+        String::from("D=A"),
+        String::from("// Jump to segment + offset"),
+        format!("@{}", segment),
+        String::from("D=M+D"),
+        String::from("// Assign address to temp"),
+        String::from("// R13 - 15 は汎用的なレジスタとしてVM実装で用いることができる"),
+        String::from("@R13"),
+        String::from("M=D"),
+        String::from("// Decrese stack pointer and pop stack into d"),
+        String::from("@SP"),
+        String::from("AM=M-1"),
+        String::from("D=M"),
+        String::from("// Jump to temp and write d in it"),
+        String::from("@R13"),
+        String::from("A=M"),
+        String::from("M=D"),
+    ]
+    .join("\n")
 }

@@ -1,13 +1,9 @@
-use crate::{
-    arithmetic_command::{self, ArithmeticCommand},
-    command::Command,
-    segment::{self, Segment},
-};
+use crate::{arithmetic_command::ArithmeticCommand, command::Command, segment::Segment};
 
-pub fn write_code(file_name: &str, command: &Command) -> String {
+pub fn write_code(file_name: &str, command: &Command, id: &i32) -> String {
     match command {
         Command::Arithmetic(arithmetic_command) => {
-            unimplemented!()
+            write_code_arithmetic(file_name, arithmetic_command, id)
         }
         Command::Push(segment, index) => write_code_push(file_name, segment, index),
         Command::Pop(segment, index) => write_code_pop(file_name, segment, index),

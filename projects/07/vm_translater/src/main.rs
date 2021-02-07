@@ -1,8 +1,9 @@
 use anyhow::{anyhow, Result};
 use code_writer::write_code;
 use parser::parse;
-use std::path::Path;
+use std::io::{BufWriter, Write};
 use std::{env, ffi::OsStr};
+use std::{fs::File, path::Path};
 
 mod arithmetic_command;
 mod code_writer;
@@ -28,11 +29,14 @@ fn main() -> Result<()> {
                 if extension == OsStr::new("vm") {
                     let commands = parse(&dir.path())?;
                     let mut id: i32 = 0;
+                    let new_file_path = Path::new(dir.path().parent().unwrap())
+                        .join(Path::new(dir.path().file_stem().unwrap()).with_extension("asm"));
+                    let new_file = File::create(new_file_path)?;
+                    let mut writer = BufWriter::new(new_file);
                     for command in commands {
-                        println!(
-                            "{}",
-                            write_code(dir.file_name().to_str().unwrap(), &command, &id)
-                        );
+                        writer.write(
+                            write_code(dir.file_name().to_str().unwrap(), &command, &id).as_bytes(),
+                        )?;
                         id += 1;
                     }
                 }
@@ -41,15 +45,19 @@ fn main() -> Result<()> {
     } else {
         let commands = parse(&path_dir.to_path_buf())?;
         let mut id: i32 = 0;
+        let new_file_path = Path::new(path_dir.parent().unwrap())
+            .join(Path::new(path_dir.file_stem().unwrap()).with_extension("asm"));
+        let new_file = File::create(new_file_path)?;
+        let mut writer = BufWriter::new(new_file);
         for command in commands {
-            println!(
-                "{}",
+            writer.write(
                 write_code(
                     &path_dir.file_name().unwrap().to_str().unwrap(),
                     &command,
-                    &id
+                    &id,
                 )
-            );
+                .as_bytes(),
+            )?;
             id += 1;
         }
     }

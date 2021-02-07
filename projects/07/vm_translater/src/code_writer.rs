@@ -145,7 +145,7 @@ fn write_code_push(file_name: &str, segment: &Segment, index: &i32) -> String {
         Segment::Constant => vec![
             String::from("// Constant"),
             String::from("// Load constant or offset into d"),
-            format!("{}", index),
+            format!("@{}", index),
             String::from("D=A"),
             String::from("// Push value onto stack"),
             String::from("@SP"),
@@ -160,7 +160,7 @@ fn write_code_push(file_name: &str, segment: &Segment, index: &i32) -> String {
         Segment::Pointer => vec![
             String::from("// Pointer"),
             String::from("// Load constant or offset into d"),
-            format!("{}", index),
+            format!("@{}", index),
             String::from("D=A"),
             String::from("// offset by 3"),
             String::from("// pointer i は 3 + i 番目のアドレスへ 変換されるべき"),
@@ -178,7 +178,7 @@ fn write_code_push(file_name: &str, segment: &Segment, index: &i32) -> String {
         Segment::Temp => vec![
             String::from("// Temp"),
             String::from("// Load constant or offset into d"),
-            format!("{}", index),
+            format!("@{}", index),
             String::from("D=A"),
             String::from("// offset by 5"),
             String::from("// temp i は 5 + i 番目のアドレスへ 変換されるべき"),

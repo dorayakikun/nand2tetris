@@ -4,7 +4,7 @@ pub fn write_code(file_name: &str, command: &Command, id: &i32) -> String {
     match command {
         Command::Arithmetic(arithmetic_command) => {
             write_code_arithmetic(file_name, arithmetic_command, id)
-        }
+        },
         Command::Push(segment, index) => write_code_push(file_name, segment, index),
         Command::Pop(segment, index) => write_code_pop(file_name, segment, index),
     }
@@ -16,7 +16,7 @@ fn write_code_arithmetic(
     index: &i32,
 ) -> String {
     match arithmetic_command {
-        Add => vec![
+        ArithmeticCommand::Add => vec![
             String::from("// Add"),
             String::from("// Pop stack into d"),
             String::from("@SP"),
@@ -28,7 +28,7 @@ fn write_code_arithmetic(
             String::from("M=M+D"),
         ]
         .join("\n"),
-        Sub => vec![
+        ArithmeticCommand::Sub => vec![
             String::from("// Sub"),
             String::from("// Pop stack into d"),
             String::from("@SP"),
@@ -40,22 +40,19 @@ fn write_code_arithmetic(
             String::from("M=M-D"),
         ]
         .join("\n"),
-        Neg => vec![
+        ArithmeticCommand::Neg => vec![
             String::from("// Neg"),
-            String::from("// Pop stack into d"),
             String::from("@SP"),
             String::from("AM=M-1"),
-            String::from("D=M"),
-            String::from("@SP"),
-            String::from("A=M-1"),
-            String::from("@SP"),
             String::from("M=-M"),
+            String::from("@SP"),
+            String::from("M=M+1"),
         ]
         .join("\n"),
-        Eq => write_code_comparation("EQ", index),
-        Gt => write_code_comparation("GT", index),
-        Lt => write_code_comparation("LT", index),
-        And => vec![
+        ArithmeticCommand::Eq => write_code_comparation("EQ", index),
+        ArithmeticCommand::Gt => write_code_comparation("GT", index),
+        ArithmeticCommand::Lt => write_code_comparation("LT", index),
+        ArithmeticCommand::And => vec![
             String::from("// And"),
             String::from("// Pop stack into d"),
             String::from("@SP"),
@@ -67,7 +64,7 @@ fn write_code_arithmetic(
             String::from("M=D&M"),
         ]
         .join("\n"),
-        Or => vec![
+        ArithmeticCommand::Or => vec![
             String::from("// Or"),
             String::from("// Pop stack into d"),
             String::from("@SP"),
@@ -79,7 +76,7 @@ fn write_code_arithmetic(
             String::from("M=D|M"),
         ]
         .join("\n"),
-        Not => vec![
+        ArithmeticCommand::Not => vec![
             String::from("// Not"),
             String::from("// Pop stack into d"),
             String::from("@SP"),
@@ -310,4 +307,9 @@ fn write_pop_stack_into_segment(segment: &str, index: &i32) -> String {
         String::from("M=D"),
     ]
     .join("\n")
+}
+
+mod test {
+    use crate::*;
+
 }

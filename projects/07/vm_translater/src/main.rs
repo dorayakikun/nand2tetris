@@ -37,6 +37,7 @@ fn main() -> Result<()> {
                         writer.write(
                             write_code(dir.file_name().to_str().unwrap(), &command, &id).as_bytes(),
                         )?;
+                        writer.write(b"\n\n")?;
                         id += 1;
                     }
                 }
@@ -58,6 +59,7 @@ fn main() -> Result<()> {
                 )
                 .as_bytes(),
             )?;
+            writer.write(b"\n\n")?;
             id += 1;
         }
     }

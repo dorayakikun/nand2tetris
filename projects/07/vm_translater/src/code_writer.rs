@@ -26,6 +26,8 @@ fn write_code_arithmetic(
             String::from("A=M-1"),
             String::from("@SP"),
             String::from("M=M+D"),
+            String::from("@SP"),
+            String::from("M=M+1"),
         ]
         .join("\n"),
         ArithmeticCommand::Sub => vec![
@@ -38,6 +40,8 @@ fn write_code_arithmetic(
             String::from("A=M-1"),
             String::from("@SP"),
             String::from("M=M-D"),
+            String::from("@SP"),
+            String::from("M=M+1"),
         ]
         .join("\n"),
         ArithmeticCommand::Neg => vec![
@@ -62,6 +66,8 @@ fn write_code_arithmetic(
             String::from("@SP"),
             String::from("A=M-1"),
             String::from("M=D&M"),
+            String::from("@SP"),
+            String::from("M=M+1"),
         ]
         .join("\n"),
         ArithmeticCommand::Or => vec![
@@ -74,6 +80,8 @@ fn write_code_arithmetic(
             String::from("@SP"),
             String::from("A=M-1"),
             String::from("M=D|M"),
+            String::from("@SP"),
+            String::from("M=M+1"),
         ]
         .join("\n"),
         ArithmeticCommand::Not => vec![
@@ -86,6 +94,8 @@ fn write_code_arithmetic(
             String::from("@SP"),
             String::from("A=M-1"),
             String::from("M=!M"),
+            String::from("@SP"),
+            String::from("M=M+1"),
         ]
         .join("\n"),
     }
@@ -117,6 +127,8 @@ fn write_code_comparation(operator: &str, index: &i32) -> String {
         String::from("A=M"),
         String::from("M=-1"),
         format!("({}_END_{})", operator, index),
+        String::from("@SP"),
+        String::from("M=M+1"),
         String::from("@SP"),
         String::from("M=M+1"),
     ]

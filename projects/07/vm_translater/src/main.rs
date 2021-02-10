@@ -44,23 +44,28 @@ fn main() -> Result<()> {
             }
         }
     } else {
-        let commands = parse(&path_dir.to_path_buf())?;
-        let mut id: i32 = 0;
-        let new_file_path = Path::new(path_dir.parent().unwrap())
-            .join(Path::new(path_dir.file_stem().unwrap()).with_extension("asm"));
-        let new_file = File::create(new_file_path)?;
-        let mut writer = BufWriter::new(new_file);
-        for command in commands {
-            writer.write(
-                write_code(
-                    &path_dir.file_name().unwrap().to_str().unwrap(),
-                    &command,
-                    &id,
-                )
-                .as_bytes(),
-            )?;
-            writer.write(b"\n\n")?;
-            id += 1;
+        
+        if let Some(extension) = path_dir.extension() {
+            if extension == OsStr::new("vm") {
+                let commands = parse(&path_dir.to_path_buf())?;
+                let mut id: i32 = 0;
+                let new_file_path = Path::new(path_dir.parent().unwrap())
+                    .join(Path::new(path_dir.file_stem().unwrap()).with_extension("asm"));
+                let new_file = File::create(new_file_path)?;
+                let mut writer = BufWriter::new(new_file);
+                for command in commands {
+                    writer.write(
+                        write_code(
+                            &path_dir.file_name().unwrap().to_str().unwrap(),
+                            &command,
+                            &id,
+                        )
+                        .as_bytes(),
+                    )?;
+                    writer.write(b"\n\n")?;
+                    id += 1;
+                }
+            }
         }
     }
     Ok(())

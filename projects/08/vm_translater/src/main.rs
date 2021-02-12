@@ -22,6 +22,10 @@ fn main() -> Result<()> {
     let path_dir = Path::new(&args[1]);
 
     if path_dir.is_dir() {
+        let file_name = path_dir.file_stem().unwrap().to_str().unwrap();
+        let new_file_path = path_dir.join(Path::new(file_name).with_extension("asm"));
+        let new_file = File::create(new_file_path)?;
+        let mut writer = BufWriter::new(new_file);
         let dirs = path_dir.read_dir()?;
         for dir in dirs {
             let dir = dir?;
@@ -29,13 +33,9 @@ fn main() -> Result<()> {
                 if extension == OsStr::new("vm") {
                     let commands = parse(&dir.path())?;
                     let mut id: i32 = 0;
-                    let new_file_path = Path::new(dir.path().parent().unwrap())
-                        .join(Path::new(dir.path().file_stem().unwrap()).with_extension("asm"));
-                    let new_file = File::create(new_file_path)?;
-                    let mut writer = BufWriter::new(new_file);
                     for command in commands {
                         writer.write(
-                            write_code(dir.file_name().to_str().unwrap(), &command, &id).as_bytes(),
+                            write_code(file_name, &command, &id).as_bytes(),
                         )?;
                         writer.write(b"\n\n")?;
                         id += 1;

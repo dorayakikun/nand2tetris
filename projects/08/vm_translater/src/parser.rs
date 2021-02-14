@@ -35,7 +35,7 @@ fn read_lines(file_name: &PathBuf) -> Result<io::Lines<io::BufReader<File>>> {
 fn make_command(tokens: Vec<&str>) -> Result<Command> {
     match tokens[0] {
         "add" => Ok(Command::Arithmetic(ArithmeticCommand::Add)),
-        "sub" => Ok(Command::Arithmetic(ArithmeticCommand::Add)),
+        "sub" => Ok(Command::Arithmetic(ArithmeticCommand::Sub)),
         "neg" => Ok(Command::Arithmetic(ArithmeticCommand::Neg)),
         "eq" => Ok(Command::Arithmetic(ArithmeticCommand::Eq)),
         "gt" => Ok(Command::Arithmetic(ArithmeticCommand::Gt)),
@@ -87,6 +87,63 @@ fn make_command(tokens: Vec<&str>) -> Result<Command> {
                 _ => Err(anyhow!("invalid segment found: {}", tokens[1])),
             }
         }
+        "label" => {
+            if tokens.len() != 2 {
+                return Err(anyhow!(
+                    "the length of tokens is invalid. expected: 2, actual: {}",
+                    tokens.len()
+                ));
+            };
+
+            Ok(Command::Label(tokens[1].to_string()))
+        }
+        "goto" => {
+            if tokens.len() != 2 {
+                return Err(anyhow!(
+                    "the length of tokens is invalid. expected: 2, actual: {}",
+                    tokens.len()
+                ));
+            };
+
+            Ok(Command::GoTo(tokens[1].to_string()))
+        }
+        "if-goto" => {
+            if tokens.len() != 2 {
+                return Err(anyhow!(
+                    "the length of tokens is invalid. expected: 2, actual: {}",
+                    tokens.len()
+                ));
+            };
+
+            Ok(Command::IfGoTo(tokens[1].to_string()))
+        }
+        "function" => {
+            if tokens.len() != 3 {
+                return Err(anyhow!(
+                    "the length of tokens is invalid. expected: 3, actual: {}",
+                    tokens.len()
+                ));
+            };
+            let number_of_locals: i32 = tokens[2]
+                .parse()
+                .with_context(|| format!("arg2 is not a number: {}", tokens[2]))?;
+
+            Ok(Command::Function(tokens[1].to_string(), number_of_locals))
+        }
+        "call" => {
+            if tokens.len() != 3 {
+                return Err(anyhow!(
+                    "the length of tokens is invalid. expected: 3, actual: {}",
+                    tokens.len()
+                ));
+            };
+            let number_of_arguments: i32 = tokens[2]
+                .parse()
+                .with_context(|| format!("arg2 is not a number: {}", tokens[2]))?;
+
+            Ok(Command::Call(tokens[1].to_string(), number_of_arguments))
+        }
+        "return" => Ok(Command::Return),
         _ => Err(anyhow!("invalid command found: {}", tokens[0])),
     }
 }

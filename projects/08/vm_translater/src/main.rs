@@ -34,9 +34,7 @@ fn main() -> Result<()> {
                     let commands = parse(&dir.path())?;
                     let mut id: i32 = 0;
                     for command in commands {
-                        writer.write(
-                            write_code(file_name, &command, &id).as_bytes(),
-                        )?;
+                        writer.write(write_code(file_name, &command, &id).as_bytes())?;
                         writer.write(b"\n\n")?;
                         id += 1;
                     }
@@ -44,7 +42,6 @@ fn main() -> Result<()> {
             }
         }
     } else {
-        
         if let Some(extension) = path_dir.extension() {
             if extension == OsStr::new("vm") {
                 let commands = parse(&path_dir.to_path_buf())?;

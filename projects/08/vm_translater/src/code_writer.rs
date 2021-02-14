@@ -2,19 +2,166 @@ use crate::{arithmetic_command::ArithmeticCommand, command::Command, segment::Se
 
 pub fn write_code(file_name: &str, command: &Command, id: &i32) -> String {
     match command {
-        Command::Arithmetic(arithmetic_command) => {
-            write_code_arithmetic(file_name, arithmetic_command, id)
-        },
+        Command::Arithmetic(arithmetic_command) => write_code_arithmetic(arithmetic_command, id),
         Command::Push(segment, index) => write_code_push(file_name, segment, index),
         Command::Pop(segment, index) => write_code_pop(file_name, segment, index),
+        Command::Label(value) => vec![format!("({}${})", file_name, value)].join("\n"),
+        Command::GoTo(label) => {
+            vec![format!("@{}${}", file_name, label), String::from("0;JMP")].join("\n")
+        }
+        Command::IfGoTo(label) => vec![
+            String::from("@SP"),
+            String::from("AM=M-1"),
+            String::from("M=D"),
+            format!("@{}${}", file_name, label),
+            String::from("D;JNE"),
+        ]
+        .join("\n"),
+        Command::Function(function_name, number_of_locals) => {
+            let mut out: Vec<String> = Vec::new();
+            out.append(&mut vec![
+                format!("// function {} {}", function_name, number_of_locals),
+                format!("({})", function_name),
+            ]);
+            for _ in 0i32..*number_of_locals {
+                out.append(&mut vec![
+                    String::from("@SP"),
+                    String::from("A=M"),
+                    String::from("M=0"),
+                    String::from("@SP"),
+                    String::from("M=M+1"),
+                ]);
+            }
+            out.join("\n")
+        }
+        Command::Call(function_name, number_of_arguments) => {
+            vec![
+                format!("// call function {} {}", function_name, number_of_arguments),
+                // push return-address
+                format!("@{}_{}", file_name, id),
+                String::from("D=A"),
+                String::from("@SP"),
+                String::from("A=M"),
+                String::from("M=D"),
+                String::from("@SP"),
+                String::from("M=M+1"),
+                // push LCL
+                String::from("@LCL"),
+                String::from("D=M"),
+                String::from("@SP"),
+                String::from("A=M"),
+                String::from("M=D"),
+                String::from("@SP"),
+                String::from("M=M+1"),
+                // push ARG
+                String::from("@ARG"),
+                String::from("D=M"),
+                String::from("@SP"),
+                String::from("A=M"),
+                String::from("M=D"),
+                String::from("@SP"),
+                String::from("M=M+1"),
+                // push THIS
+                String::from("@THIS"),
+                String::from("D=M"),
+                String::from("@SP"),
+                String::from("A=M"),
+                String::from("M=D"),
+                String::from("@SP"),
+                String::from("M=M+1"),
+                // push THAT
+                String::from("@THAT"),
+                String::from("D=M"),
+                String::from("@SP"),
+                String::from("A=M"),
+                String::from("M=D"),
+                String::from("@SP"),
+                String::from("M=M+1"),
+                // ARG = SP-n-5
+                String::from("@SP"),
+                String::from("D=M"),
+                format!("@{}", number_of_arguments + 5),
+                String::from("D=D-A"),
+                String::from("@ARG"),
+                String::from("M=D"),
+                // LCL = SP
+                String::from("@SP"),
+                String::from("D=M"),
+                String::from("@LCL"),
+                String::from("M=D"),
+                // goto function"
+                format!("@{}", function_name),
+                String::from("0;JMP"),
+                // (return-address)
+                format!("({}_{})", file_name, id),
+            ]
+            .join("\n")
+        }
+        Command::Return => {
+            vec![
+                String::from("// return"),
+                // FRAME = LCL
+                String::from("@LCL"),
+                String::from("D=M"),
+                String::from("@R13"),
+                String::from("M=D"),
+                // RET = *(FRAME - 5)
+                String::from("@5"),
+                String::from("A=D-A"),
+                String::from("D=M"),
+                String::from("@R14"),
+                String::from("M=D"),
+                // *ARG = pop()
+                String::from("@ARG"),
+                String::from("D=M"),
+                String::from("@R15"),
+                String::from("M=D"),
+                String::from("@SP"),
+                String::from("AM=M-1"),
+                String::from("D=M"),
+                String::from("@15"),
+                String::from("A=M"),
+                String::from("M=D"),
+                // SP = ARG + 1
+                String::from("@ARG"),
+                String::from("D=M"),
+                String::from("@SP"),
+                String::from("M=D+1"),
+                // THAT = *(FRAME - 1)
+                String::from("@R13"),
+                String::from("AM=M-1"),
+                String::from("D=M"),
+                String::from("@THAT"),
+                String::from("M=D"),
+                // THIS = *(FRAME - 2)
+                String::from("@R13"),
+                String::from("AM=M-1"),
+                String::from("D=M"),
+                String::from("@THIS"),
+                String::from("M=D"),
+                // ARG = *(FRAME - 3)
+                String::from("@R13"),
+                String::from("AM=M-1"),
+                String::from("D=M"),
+                String::from("@ARG"),
+                String::from("M=D"),
+                // LCL = *(FRAME - 4)
+                String::from("@R13"),
+                String::from("AM=M-1"),
+                String::from("D=M"),
+                String::from("@LCL"),
+                String::from("M=D"),
+                // goto RET
+                String::from("@R14"),
+                String::from("A=M"),
+                String::from("0;JPM"),
+            ]
+            .join("\n")
+        }
     }
 }
 
-fn write_code_arithmetic(
-    file_name: &str,
-    arithmetic_command: &ArithmeticCommand,
-    index: &i32,
-) -> String {
+fn write_code_arithmetic(arithmetic_command: &ArithmeticCommand, index: &i32) -> String {
     match arithmetic_command {
         ArithmeticCommand::Add => vec![
             String::from("// Add"),
@@ -319,9 +466,4 @@ fn write_pop_stack_into_segment(segment: &str, index: &i32) -> String {
         String::from("M=D"),
     ]
     .join("\n")
-}
-
-mod test {
-    use crate::*;
-
 }

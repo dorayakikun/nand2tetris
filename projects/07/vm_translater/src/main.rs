@@ -13,8 +13,7 @@ mod segment;
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
-    println!("args: {:?}", args);
-
+    
     if args.len() < 2 {
         return Err(anyhow!("please enter file name"));
     }
@@ -25,14 +24,14 @@ fn main() -> Result<()> {
         let dirs = path_dir.read_dir()?;
         for dir in dirs {
             let dir = dir?;
+            let new_file_path =
+                path_dir.join(Path::new(path_dir.file_stem().unwrap()).with_extension("asm"));
+            let new_file = File::create(new_file_path)?;
+            let mut writer = BufWriter::new(new_file);
             if let Some(extension) = dir.path().extension() {
                 if extension == OsStr::new("vm") {
                     let commands = parse(&dir.path())?;
                     let mut id: i32 = 0;
-                    let new_file_path = Path::new(dir.path().parent().unwrap())
-                        .join(Path::new(dir.path().file_stem().unwrap()).with_extension("asm"));
-                    let new_file = File::create(new_file_path)?;
-                    let mut writer = BufWriter::new(new_file);
                     for command in commands {
                         writer.write(
                             write_code(dir.file_name().to_str().unwrap(), &command, &id).as_bytes(),
@@ -44,7 +43,6 @@ fn main() -> Result<()> {
             }
         }
     } else {
-        
         if let Some(extension) = path_dir.extension() {
             if extension == OsStr::new("vm") {
                 let commands = parse(&path_dir.to_path_buf())?;
@@ -56,7 +54,7 @@ fn main() -> Result<()> {
                 for command in commands {
                     writer.write(
                         write_code(
-                            &path_dir.file_name().unwrap().to_str().unwrap(),
+                            &path_dir.file_stem().unwrap().to_str().unwrap(),
                             &command,
                             &id,
                         )

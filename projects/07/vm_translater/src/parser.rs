@@ -35,7 +35,7 @@ fn read_lines(file_name: &PathBuf) -> Result<io::Lines<io::BufReader<File>>> {
 fn make_command(tokens: Vec<&str>) -> Result<Command> {
     match tokens[0] {
         "add" => Ok(Command::Arithmetic(ArithmeticCommand::Add)),
-        "sub" => Ok(Command::Arithmetic(ArithmeticCommand::Add)),
+        "sub" => Ok(Command::Arithmetic(ArithmeticCommand::Sub)),
         "neg" => Ok(Command::Arithmetic(ArithmeticCommand::Neg)),
         "eq" => Ok(Command::Arithmetic(ArithmeticCommand::Eq)),
         "gt" => Ok(Command::Arithmetic(ArithmeticCommand::Gt)),

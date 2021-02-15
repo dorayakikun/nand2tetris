@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use code_writer::write_code;
+use code_writer::{write_bootstrap, write_code};
 use parser::parse;
 use std::io::{BufWriter, Write};
 use std::{env, ffi::OsStr};
@@ -26,6 +26,10 @@ fn main() -> Result<()> {
         let new_file_path = path_dir.join(Path::new(file_name).with_extension("asm"));
         let new_file = File::create(new_file_path)?;
         let mut writer = BufWriter::new(new_file);
+
+        writer.write(write_bootstrap().as_bytes())?;
+        writer.write(b"\n\n")?;
+
         let dirs = path_dir.read_dir()?;
         for dir in dirs {
             let dir = dir?;
@@ -34,7 +38,7 @@ fn main() -> Result<()> {
                     let commands = parse(&dir.path())?;
                     let mut id: i32 = 0;
                     for command in commands {
-                        writer.write(write_code(file_name, &command, &id).as_bytes())?;
+                        writer.write(write_code(dir.path().file_stem().unwrap().to_str().unwrap(), &command, &id).as_bytes())?;
                         writer.write(b"\n\n")?;
                         id += 1;
                     }
@@ -45,15 +49,19 @@ fn main() -> Result<()> {
         if let Some(extension) = path_dir.extension() {
             if extension == OsStr::new("vm") {
                 let commands = parse(&path_dir.to_path_buf())?;
-                let mut id: i32 = 0;
                 let new_file_path = Path::new(path_dir.parent().unwrap())
                     .join(Path::new(path_dir.file_stem().unwrap()).with_extension("asm"));
                 let new_file = File::create(new_file_path)?;
                 let mut writer = BufWriter::new(new_file);
+
+                writer.write(write_bootstrap().as_bytes())?;
+                writer.write(b"\n\n")?;
+
+                let mut id: i32 = 0;
                 for command in commands {
                     writer.write(
                         write_code(
-                            &path_dir.file_name().unwrap().to_str().unwrap(),
+                            &path_dir.file_stem().unwrap().to_str().unwrap(),
                             &command,
                             &id,
                         )

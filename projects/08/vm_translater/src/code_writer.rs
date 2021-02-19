@@ -122,6 +122,9 @@ pub fn write_code(file_name: &str, command: &Command, id: &i32) -> String {
                 String::from("D=M"),
                 String::from("@R14"),
                 String::from("M=D"),
+                String::from("@SP"),
+                String::from("AM=M-1"),
+                String::from("D=M"),
                 // *ARG = pop()
                 String::from("@ARG"),
                 String::from("D=M"),

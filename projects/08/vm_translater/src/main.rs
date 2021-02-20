@@ -13,7 +13,6 @@ mod segment;
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
-    println!("args: {:?}", args);
 
     if args.len() < 2 {
         return Err(anyhow!("please enter file name"));

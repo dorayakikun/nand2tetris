@@ -26,9 +26,16 @@ fn main() -> Result<()> {
         let new_file = File::create(new_file_path)?;
         let mut writer = BufWriter::new(new_file);
 
-        let file_names = path_dir.read_dir()?.filter_map(|entry| {
-            entry.ok().and_then(|e| e.path().file_name().and_then(|n| n.to_str().map(|s| s.to_string())))
-        }).collect::<Vec<String>>();
+        let file_names = path_dir
+            .read_dir()?
+            .filter_map(|entry| {
+                entry.ok().and_then(|e| {
+                    e.path()
+                        .file_name()
+                        .and_then(|n| n.to_str().map(|s| s.to_string()))
+                })
+            })
+            .collect::<Vec<String>>();
 
         if file_names.contains(&"Sys.vm".to_string()) {
             writer.write(write_bootstrap().as_bytes())?;
@@ -43,7 +50,14 @@ fn main() -> Result<()> {
                     let commands = parse(&dir.path())?;
                     let mut id: i32 = 0;
                     for command in commands {
-                        writer.write(write_code(dir.path().file_stem().unwrap().to_str().unwrap(), &command, &id).as_bytes())?;
+                        writer.write(
+                            write_code(
+                                dir.path().file_stem().unwrap().to_str().unwrap(),
+                                &command,
+                                &id,
+                            )
+                            .as_bytes(),
+                        )?;
                         writer.write(b"\n\n")?;
                         id += 1;
                     }

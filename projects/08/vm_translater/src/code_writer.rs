@@ -8,7 +8,8 @@ pub fn write_bootstrap() -> String {
         String::from("@SP"),
         String::from("M=D"),
         write_code("bootstrap", &Command::Call("Sys.init".to_string(), 0), &0),
-    ].join("\n")
+    ]
+    .join("\n")
 }
 
 pub fn write_code(file_name: &str, command: &Command, id: &i32) -> String {

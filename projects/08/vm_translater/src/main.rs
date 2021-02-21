@@ -26,8 +26,14 @@ fn main() -> Result<()> {
         let new_file = File::create(new_file_path)?;
         let mut writer = BufWriter::new(new_file);
 
-        writer.write(write_bootstrap().as_bytes())?;
-        writer.write(b"\n\n")?;
+        let file_names = path_dir.read_dir()?.filter_map(|entry| {
+            entry.ok().and_then(|e| e.path().file_name().and_then(|n| n.to_str().map(|s| s.to_string())))
+        }).collect::<Vec<String>>();
+
+        if file_names.contains(&"Sys.vm".to_string()) {
+            writer.write(write_bootstrap().as_bytes())?;
+            writer.write(b"\n\n")?;
+        }
 
         let dirs = path_dir.read_dir()?;
         for dir in dirs {
@@ -52,9 +58,6 @@ fn main() -> Result<()> {
                     .join(Path::new(path_dir.file_stem().unwrap()).with_extension("asm"));
                 let new_file = File::create(new_file_path)?;
                 let mut writer = BufWriter::new(new_file);
-
-                writer.write(write_bootstrap().as_bytes())?;
-                writer.write(b"\n\n")?;
 
                 let mut id: i32 = 0;
                 for command in commands {
